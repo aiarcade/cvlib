@@ -6,6 +6,9 @@
 
 #include "lbp.h"
 #include "object.h"
+#include <string>
+#include <sstream>
+#include <iostream>
 
 
 class Detector{

@@ -1,5 +1,30 @@
 #include "detector.h"
 
+
+int Detector::
+max(int a, int b)
+{
+    return (a >= b) ? a : b;
+}
+
+int Detector::
+min(int a, int b)
+{
+    return (a <= b) ? a : b;
+}
+
+int Detector::
+round(float value)
+{
+    return (int)(value + (value >= 0 ? 0.5 : -0.5));
+}
+
+int Detector::
+abs(int n)
+{
+    return (n >= 0) ? n : -n;
+}
+
 int
 Detector::detect( unsigned char *y,Object *fa, int *maxfaces)
 {
@@ -130,18 +155,26 @@ Detector::ObjectDetectorLbpCreate(int width, int height, int minimum_face_width)
 
 int Detector::loadLbpData(Lbp *l)
 {
-    std::ifstream in;
+    //std::ifstream in;
     int i, j;
+    std::ifstream file( "frontalface.txt" );
+    std::stringstream in;
+    if ( file )
+    {
 
-    in.open("frontalface.txt");
+
+        in << file.rdbuf();
+
+        file.close();
+
+
+    }
 
     if (in.fail()) {
-        /* try local directory */
-        in.open("frontalface.txt");
-        if (in.fail()) {
-            //ALOGE("Cannot open data file: %s", DATA_FILE_PATH);
+
+
             return -EIO;
-        }
+
     }
 
     in >> l->data.feature_height >> l->data.feature_width >> l->data.num_stages;
@@ -380,30 +413,4 @@ int Detector::predicate(float eps, LbpRect& r1, LbpRect& r2)
         abs(r1.y - r2.y) <= delta &&
         abs(r1.x + r1.w - r2.x - r2.w) <= delta &&
         abs(r1.y + r1.h - r2.y - r2.h) <= delta;
-}
-
-
-
-int Detector::
-max(int a, int b)
-{
-    return (a >= b) ? a : b;
-}
-
-int Detector::
-min(int a, int b)
-{
-    return (a <= b) ? a : b;
-}
-
-int Detector::
-round(float value)
-{
-    return (int)(value + (value >= 0 ? 0.5 : -0.5));
-}
-
-int Detector::
-abs(int n)
-{
-    return (n >= 0) ? n : -n;
 }
