@@ -7,14 +7,14 @@ SRCDIR := src
 BUILDDIR := build
 LIBDIR :=lib
 
-CC := g++
-SRCEXT := cpp
+CC := /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++
+SRCEXT := hpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 LIB := -lm -L lib -lcvdetect
 INC := -I include
 CPPFLAGS=   -pipe -stdlib=libc++ -g -std=gnu++11  -mmacosx-version-min=10.8 -Wall -W -fPIC -DCVDETECT_LIBRARY
-LDFLAGS= -single_module -dynamiclib -compatibility_version	1.0 -current_version	1.0.0 -install_name $(LIBDIR)/libcvdetect.dylib
+LDFLAGS= -single_module -dynamiclib -compatibility_version	1.0 -current_version	1.0.0 -install_name libcvdetect.dylib 
 
 
 LIBTARGET=$(LIBDIR)/libcvdetect.dylib
