@@ -24,7 +24,7 @@ else
     UNAME_S := $(shell uname -s)
     ifeq ($(UNAME_S),Linux)
         CPPFLAGS :=  -pipe  -g -std=gnu++11  -Wall -W -fPIC -DCVDETECT_LIBRARY
-				LDFLAGS := -single_module -shared
+				LDFLAGS :=  -shared
 				LIBTARGET := $(LIBDIR)/libcvdetect.so
 
     endif
@@ -58,7 +58,7 @@ $(TARGET):  $(LIBTARGET) test.o
 	@echo " $(CC) $(BUILDDIR)/test.o -o $(TARGET) $(LIB)"; $(CC) $(BUILDDIR)/test.o  -o $(TARGET) $(LIB)
 
 cvtest: $(LIBTARGET)
-	g++ -o build/cvtest src/cvtest.cpp -lcvdetect -L lib `pkg-config --cflags  opencv` -I include -L/usr/local/lib -L/usr/local/share/OpenCV/3rdparty/lib -lopencv_contrib -lopencv_stitching -lopencv_nonfree -lopencv_superres -lopencv_ocl -lopencv_ts -lopencv_videostab -lopencv_gpu -lopencv_photo -lopencv_objdetect -lopencv_legacy -lopencv_video -lopencv_ml -lopencv_calib3d -lopencv_features2d -lopencv_highgui -lIlmImf   -lpng -ljpeg -lopencv_imgproc -lopencv_flann -lopencv_core -lzlib
+	g++ -o build/cvtest src/cvtest.cpp -lcvdetect -L lib `pkg-config --cflags  opencv` -I include -L/usr/local/lib -L/usr/local/share/OpenCV/3rdparty/lib -lopencv_contrib -lopencv_stitching  -lopencv_superres -lopencv_ocl -lopencv_ts -lopencv_videostab -lopencv_gpu -lopencv_photo -lopencv_objdetect -lopencv_legacy -lopencv_video -lopencv_ml -lopencv_calib3d -lopencv_features2d -lopencv_highgui -lIlmImf   -lpng -ljpeg -lopencv_imgproc -lopencv_flann -lopencv_core
 
 $(LIBTARGET) : $(OBJECTS)
 	$(CC) $(LDFLAGS)  -o $(LIBTARGET) $(OBJECTS)
