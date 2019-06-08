@@ -37,7 +37,7 @@ int main(int argc, const char *argv[]) {
     cap.set(CV_CAP_PROP_FRAME_WIDTH, width);
     cap.set(CV_CAP_PROP_FRAME_HEIGHT, height);
 
-    Detector *det = new Detector(width, height, height/10);
+    Detector *det = new Detector(width, height, height/10,"lbpcascade_frontalface.xml");
     int frames = 0;
 
     Object *fa=new Object[MAX_FACES];

@@ -142,9 +142,10 @@ Detector::ObjectDetectorLbpCreate(int width, int height, int minimum_face_width)
     l->width = width;
     l->height = height;
 
-    ret = loadLbpData(l);
+    ret=loadLbpDataFromXML(l);
+
     if (ret) {
-        //face_detector_lbp_destroy(l);
+
         return NULL;
     }
     initTask(l);
@@ -152,12 +153,162 @@ Detector::ObjectDetectorLbpCreate(int width, int height, int minimum_face_width)
 
     return l;
 }
+tinyxml2::XMLElement* Detector::findElement(tinyxml2::XMLElement* row,char * name)
+{
+  row=row->FirstChildElement();
+  while (row != NULL)
+  {
+    int cmp=strcmp(row->Value(),name);
 
+    if (cmp==0)
+    {
+
+      return row;
+    }
+    else
+    {
+      row=row->NextSiblingElement();
+    }
+
+  }
+  return NULL;
+
+}
+size_t Detector::splitDouble(const std::string &txt, std::vector<double> &numbers, char ch)
+{
+
+
+  std::stringstream iss( txt );
+  double number;
+  while ( iss >> number )
+    numbers.push_back( number );
+  return numbers.size();
+}
+size_t Detector::splitInt(const std::string &txt, std::vector<int> &numbers, char ch)
+{
+
+  std::stringstream iss( txt );
+  int number;
+  while ( iss >> number )
+    numbers.push_back( number );
+  
+  return numbers.size();
+}
+
+
+int Detector::loadLbpDataFromXML(Lbp *l)
+{
+
+    int i, j;
+    tinyxml2::XMLDocument doc;
+    doc.LoadFile(this->cascade_file);
+    tinyxml2::XMLElement* parent = doc.FirstChildElement("opencv_storage");
+
+    tinyxml2::XMLElement *cas_ele = parent->FirstChildElement("cascade");
+    tinyxml2::XMLElement * h_ele =findElement(cas_ele,"height");
+    tinyxml2::XMLElement * w_ele =findElement(cas_ele,"width");
+    tinyxml2::XMLElement * sn_ele =findElement(cas_ele,"stageNum");
+
+    l->data.feature_height=atoi(h_ele->GetText());
+    l->data.feature_width = atoi(w_ele->GetText());
+    l->data.num_stages = atoi(sn_ele->GetText());
+
+    if ((l->data.num_stages <= 0)) {
+      l->data.num_stages = 0;
+      return -EIO;
+    }
+    Stage * s = new Stage[l->data.num_stages];
+
+    l->data.s = s;
+    tinyxml2::XMLElement * stage_ele  =findElement(cas_ele,"stages");
+    tinyxml2::XMLElement *  sym_ele=findElement(stage_ele,"_");
+    while(sym_ele!=NULL){
+      tinyxml2::XMLElement *  wcn_ele=findElement(sym_ele,"maxWeakCount");
+      tinyxml2::XMLElement *  stgthr_ele=findElement(sym_ele,"stageThreshold");
+      tinyxml2::XMLElement *  wc_ele=findElement(sym_ele,"weakClassifiers");
+      int wc_count=atoi(wcn_ele->GetText());
+      double stage_thr=atof(stgthr_ele->GetText());
+      l->data.s[i].num_weak_classifiers=wc_count;
+      l->data.s[i].stage_threshold=stage_thr;
+      if ((l->data.s[i].num_weak_classifiers <= 0)) {
+
+            l->data.s[i].num_weak_classifiers = 0;
+            return -EIO;
+      }
+      WeakClassifier * wc = new WeakClassifier [l->data.s[i].num_weak_classifiers];
+      l->data.s[i].classifiers =  wc;
+      tinyxml2::XMLElement *  symc_ele=findElement(wc_ele,"_");
+
+      j=0;
+      while(symc_ele!=NULL)
+      {
+        tinyxml2::XMLElement *  in_ele=symc_ele->FirstChildElement("internalNodes");
+        tinyxml2::XMLElement *  lf_ele=symc_ele->LastChildElement("leafValues");
+        std::vector<double> leafValues;
+        std::vector<int> internalNodes;
+        splitInt(in_ele->GetText(),internalNodes,' ');
+        splitDouble(lf_ele->GetText(),leafValues,' ');
+
+        l->data.s[i].classifiers[j].rect_idx=internalNodes[2]; /* REVISIT sanity check for out of bound ? */
+        l->data.s[i].classifiers[j].lbpmap[0]=internalNodes[3];
+        l->data.s[i].classifiers[j].lbpmap[1]=internalNodes[4];
+        l->data.s[i].classifiers[j].lbpmap[2]=internalNodes[5];
+        l->data.s[i].classifiers[j].lbpmap[3]=internalNodes[6];
+        l->data.s[i].classifiers[j].lbpmap[4]=internalNodes[7];
+        l->data.s[i].classifiers[j].lbpmap[5]=internalNodes[8];
+        l->data.s[i].classifiers[j].lbpmap[6]=internalNodes[9];
+        l->data.s[i].classifiers[j].lbpmap[7]=internalNodes[10];
+        l->data.s[i].classifiers[j].neg=leafValues[0];
+        l->data.s[i].classifiers[j].pos=leafValues[1];
+        symc_ele=symc_ele->NextSiblingElement();
+        j++;
+      }
+      sym_ele=sym_ele->NextSiblingElement();
+      i++;
+    }
+
+    tinyxml2::XMLElement * feature_ele  =findElement(cas_ele,"features");
+    sym_ele=findElement(feature_ele,"_");
+    i=0;
+    while(sym_ele!=NULL){
+        sym_ele=sym_ele->NextSiblingElement();
+        i++;
+
+    }
+
+    l->data.num_rects=i;
+    if (l->data.num_rects <= 0) {
+        l->data.num_rects = 0;
+        return -EIO;
+    }
+
+
+
+    LbpRect * r= new LbpRect[l->data.num_rects];
+    l->data.r = r;
+    feature_ele  =findElement(cas_ele,"features");
+    sym_ele=findElement(feature_ele,"_");
+    i=0;
+    while(sym_ele!=NULL) {
+        tinyxml2::XMLElement *  rct_ele=findElement(sym_ele,"rect");
+        std::vector<int> rects;
+        splitInt(rct_ele->GetText(),rects,' ');
+        l->data.r[i].x = rects[0];
+        l->data.r[i].y = rects[1];
+        l->data.r[i].w = rects[2];
+        l->data.r[i].h = rects[3];
+        sym_ele=sym_ele->NextSiblingElement();
+        i++;
+    }
+
+
+    return 0;
+}
 int Detector::loadLbpData(Lbp *l)
 {
-    //std::ifstream in;
+
     int i, j;
-    std::ifstream file( "frontalface.txt" );
+    std::ifstream file( this->cascade_file );
     std::stringstream in;
     if ( file )
     {
@@ -413,4 +564,34 @@ int Detector::predicate(float eps, LbpRect& r1, LbpRect& r2)
         abs(r1.y - r2.y) <= delta &&
         abs(r1.x + r1.w - r2.x - r2.w) <= delta &&
         abs(r1.y + r1.h - r2.y - r2.h) <= delta;
+}
+
+void Detector::printClassifierInfo(Lbp *l)
+{
+  int j=0;
+  int i=0;
+  for(i=0;i<1;i++)
+  {
+    std::cerr<<"Stage "<<i<<"\n";
+    std::cerr<<"NC"<<l->data.s[i].num_weak_classifiers<<"\n";
+    std::cerr<<"THR"<<l->data.s[i].stage_threshold<<"\n";
+    for (j = 0; j < l->data.s[i].num_weak_classifiers; j++) {
+           std::cerr<<l->data.s[i].classifiers[j].rect_idx << " " /* REVISIT sanity check for out of bound ? */
+           <<l->data.s[i].classifiers[j].lbpmap[0] << " "
+           <<l->data.s[i].classifiers[j].lbpmap[1] << " "
+           <<l->data.s[i].classifiers[j].lbpmap[2] << " "
+           <<l->data.s[i].classifiers[j].lbpmap[3] << " "
+           <<l->data.s[i].classifiers[j].lbpmap[4] << " "
+           <<l->data.s[i].classifiers[j].lbpmap[5] << " "
+           <<l->data.s[i].classifiers[j].lbpmap[6] << " "
+           <<l->data.s[i].classifiers[j].lbpmap[7] << " "
+           <<l->data.s[i].classifiers[j].neg <<" "
+           <<l->data.s[i].classifiers[j].pos<<"\n";
+    }
+  }
+  for (i = 0; i < l->data.num_rects; i++) {
+      std::cerr << l->data.r[i].x << l->data.r[i].y << l->data.r[i].w << l->data.r[i].h<<"-";
+
+    }
+
 }

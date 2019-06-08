@@ -2,7 +2,6 @@
 
 
 
-
 SRCDIR := src
 BUILDDIR := build
 LIBDIR :=lib
@@ -40,6 +39,7 @@ CC := g++
 SRCEXT := cpp
 SOURCES := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 SOURCES :=$(filter-out src/cvtest.cpp, $(SOURCES))
+SOURCES :=$(filter-out src/convert.cpp, $(SOURCES))
 OBJECTS := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 LIB := -lm -L lib -lcvdetect
 INC := -I include
@@ -58,7 +58,10 @@ $(TARGET):  $(LIBTARGET) test.o
 	@echo " $(CC) $(BUILDDIR)/test.o -o $(TARGET) $(LIB)"; $(CC) $(BUILDDIR)/test.o  -o $(TARGET) $(LIB)
 
 cvtest: $(LIBTARGET)
-	g++ -o build/cvtest src/cvtest.cpp -lcvdetect -L lib `pkg-config --cflags  opencv` -I include -L/usr/local/lib -L/usr/local/share/OpenCV/3rdparty/lib -lopencv_contrib -lopencv_stitching  -lopencv_superres -lopencv_ocl -lopencv_ts -lopencv_videostab -lopencv_gpu -lopencv_photo -lopencv_objdetect -lopencv_legacy -lopencv_video -lopencv_ml -lopencv_calib3d -lopencv_features2d -lopencv_highgui -lIlmImf   -lpng -ljpeg -lopencv_imgproc -lopencv_flann -lopencv_core
+	g++ -g -o build/cvtest src/cvtest.cpp -lcvdetect -L lib `pkg-config --cflags  opencv` -I include -L/usr/local/lib -L/usr/local/share/OpenCV/3rdparty/lib -lopencv_contrib -lopencv_stitching  -lopencv_superres -lopencv_ocl -lopencv_ts -lopencv_videostab -lopencv_gpu -lopencv_photo -lopencv_objdetect -lopencv_legacy -lopencv_video -lopencv_ml -lopencv_calib3d -lopencv_features2d -lopencv_highgui -lIlmImf   -lpng -ljpeg -lopencv_imgproc -lopencv_flann -lopencv_core
+
+convert:
+	g++ -g -o build/convert src/convert.cpp  `pkg-config --cflags  opencv` -I include -L/usr/local/lib -L/usr/local/share/OpenCV/3rdparty/lib -lopencv_contrib -lopencv_stitching  -lopencv_superres -lopencv_ocl -lopencv_ts -lopencv_videostab -lopencv_gpu -lopencv_photo -lopencv_objdetect -lopencv_legacy -lopencv_video -lopencv_ml -lopencv_calib3d -lopencv_features2d -lopencv_highgui -lIlmImf   -lpng -ljpeg -lopencv_imgproc -lopencv_flann -lopencv_core
 
 $(LIBTARGET) : $(OBJECTS)
 	$(CC) $(LDFLAGS)  -o $(LIBTARGET) $(OBJECTS)

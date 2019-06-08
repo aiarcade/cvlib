@@ -9,6 +9,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include "tinyxml2.h"
 
 
 class Detector{
@@ -20,11 +21,13 @@ private:
   int width;
   int height;
   unsigned int *integral_img;
+  char *cascade_file;
 
 public :
 
-Detector(int width, int height, int minimum_face_width)
+Detector(int width, int height, int minimum_face_width,char *filename)
   {
+      this->cascade_file=filename;
       l = ObjectDetectorLbpCreate(width, height, minimum_face_width);
       this->width = width;
       this->height = height;
@@ -43,6 +46,11 @@ Detector(int width, int height, int minimum_face_width)
   int predicate(float eps, LbpRect& r1, LbpRect& r2);
   void detectorGenIntegralImage(unsigned int *i_data, unsigned char *data, int width, int height);
   int detect( unsigned char *y,Object *fa, int *maxfaces);
+  tinyxml2::XMLElement* findElement(tinyxml2::XMLElement* row,char * name);
+  size_t splitDouble(const std::string &txt, std::vector<double> &numbers, char ch);
+  size_t splitInt(const std::string &txt, std::vector<int> &numbers, char ch);
+  int loadLbpDataFromXML(Lbp *l);
+  void printClassifierInfo(Lbp *l);
 
   int max(int a, int b);
   int min(int a, int b);

@@ -27,7 +27,7 @@ main(int argc, char **argv)
     }
 
     Detector *det;
-    det = new Detector(width, height, 24);
+    det = new Detector(width, height, 24,"lbpcascade_frontalface.xml");
     if (!det) {
         fprintf(stderr, "init face detector error\n");
         return 1;

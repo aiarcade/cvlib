@@ -1,0 +1,12 @@
+The programs using example opencv face detection cascade_file
+To build library and C++ based test :
+  make
+Library is under lib/ and test is  build/test
+To run the test :
+  ./build/test 768 512 testphoto.raw
+To build an image to raw format(requires opencv):
+  make convert
+  ./build/convert testphoto.jpg  testphoto.raw
+To run an opencv based live face detection.
+  make cvtest
+  ./build/cvtest
